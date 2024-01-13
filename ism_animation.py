@@ -171,5 +171,5 @@ if __name__ == "__main__":
 
     # Create animations
     create_animation(room, rir_1, filename="ism_anim_1")
-    # create_animation(room, rir_2, (1, 1), init_rir=rir_1,
-                    #  filename="ism_anim_2")
+    create_animation(room, rir_2, (1, 1), init_rir=rir_1,
+                     filename="ism_anim_2")
