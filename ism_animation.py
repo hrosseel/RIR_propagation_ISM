@@ -23,12 +23,11 @@ from matplotlib import animation, cm, patches, collections
 import pyroomacoustics as pra
 
 # Set parameters relating to animation and styling
-plt.style.use('tableau-colorblind10')
-mpl.rcParams['animation.embed_limit'] = 256.0  # animation size limit in MB
+plt.style.use("tableau-colorblind10")
+mpl.rcParams["animation.embed_limit"] = 256.0  # animation size limit in MB
 
 
-def plot_room(axs, walls, mic_pos, im_sources, max_order,
-              fs=1, init_rir=np.array([])):
+def plot_room(axs, walls, mic_pos, im_sources, max_order, fs=1, init_rir=np.array([])):
     """
     Plot the room and the image sources. If an initial impulse response is
     provided, plot the microphone signal as well.
@@ -66,14 +65,23 @@ def plot_room(axs, walls, mic_pos, im_sources, max_order,
     polygons = [patches.Polygon(corners.T, closed=True)]
     axs[0].add_collection(
         collections.PatchCollection(
-            polygons, cmap=cm.jet, facecolor=np.array([1, 1, 1]),
-            edgecolor=np.array([0, 0, 0])
+            polygons,
+            cmap=cm.jet,
+            facecolor=np.array([1, 1, 1]),
+            edgecolor=np.array([0, 0, 0]),
         )
     )
 
     # Plot microphones
-    axs[0].scatter(mic_pos[0], mic_pos[1], marker="x", linewidth=0.5, s=10,
-                   c="k", label="microphone position")
+    axs[0].scatter(
+        mic_pos[0],
+        mic_pos[1],
+        marker="x",
+        linewidth=0.5,
+        s=10,
+        c="k",
+        label="microphone position",
+    )
 
     # Plot image sources
     propagations = []
@@ -83,13 +91,14 @@ def plot_room(axs, walls, mic_pos, im_sources, max_order,
         ims = axs[0].scatter(x, y)
         color = ims.get_facecolors()[0]
         for i in range(indices.sum()):
-            circle = patches.Circle((x[i], y[i]), radius=0, fill=False,
-                                    linewidth=2, edgecolor=color)
+            circle = patches.Circle(
+                (x[i], y[i]), radius=0, fill=False, linewidth=2, edgecolor=color
+            )
             axs[0].add_patch(circle)
             propagations.append(circle)
 
     # Set title and axes labels
-    axs[0].title.set_text('Room Impulse Response of a shoebox room')
+    axs[0].title.set_text("Room Impulse Response of a shoebox room")
     axs[0].set_xlabel("x-coordinates [m]")
     axs[0].set_ylabel("y-coordinates [m]")
 
@@ -105,7 +114,7 @@ def plot_room(axs, walls, mic_pos, im_sources, max_order,
         t = np.arange(init_rir.size) / fs
         axs[1].plot(t, init_rir)
 
-    line, = axs[1].plot([], [])
+    (line,) = axs[1].plot([], [])
 
     return line, propagations
 
@@ -115,22 +124,28 @@ def animate(frame_num, ax, line, propagations, rir, fs):
     t_ind = frame_num / fs
 
     for propagation in propagations:
-        propagation.set_radius(t_ind * 343.)  # speed of sound: 343 m/s
+        propagation.set_radius(t_ind * 343.0)  # speed of sound: 343 m/s
         propagation.alpha = 1 - t_ind * 10  # fade out as the wave propagates
 
         line.set_data(np.arange(frame_num) / fs, rir[:frame_num])  # plot RIR
-        ax.title.set_text("Room Impulse Response of a shoebox room "
-                          "(t = {:.3f}s)".format(t_ind))  # update title
+        ax.title.set_text(
+            "Room Impulse Response of a shoebox room " "(t = {:.3f}s)".format(t_ind)
+        )  # update title
 
 
-def create_animation(room, rir, src_recv_idx=(0, 0), init_rir=np.array([]),
-                     filename="ism_anim"):
+def create_animation(
+    room, rir, src_recv_idx=(0, 0), init_rir=np.array([]), filename="ism_anim"
+):
     fig, (ax_a, ax_b) = plt.subplots(2, figsize=(6, 6), height_ratios=[3, 1])
-    line, propagations = plot_room([ax_a, ax_b], room.walls,
-                                   room.mic_array.R.T[src_recv_idx[0]],
-                                   room.sources[src_recv_idx[1]],
-                                   room.max_order, fs=room.fs,
-                                   init_rir=init_rir)
+    line, propagations = plot_room(
+        [ax_a, ax_b],
+        room.walls,
+        room.mic_array.R.T[src_recv_idx[0]],
+        room.sources[src_recv_idx[1]],
+        room.max_order,
+        fs=room.fs,
+        init_rir=init_rir,
+    )
 
     # Restrict view limits to the room dimensions
     ax_a.set_xlim([0, room_dim[0]])
@@ -138,10 +153,14 @@ def create_animation(room, rir, src_recv_idx=(0, 0), init_rir=np.array([]),
     plt.tight_layout()
 
     # Initialize animation
-    anim = animation.FuncAnimation(fig, animate, frames=int(0.1 * room.fs),
-                                   interval=25, blit=False,
-                                   fargs=(ax_a, line, propagations, rir,
-                                          room.fs))
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        frames=int(0.1 * room.fs),
+        interval=25,
+        blit=False,
+        fargs=(ax_a, line, propagations, rir, room.fs),
+    )
 
     # Execute animation and write to file
     writer = animation.FFMpegFileWriter(fps=60)
@@ -158,9 +177,9 @@ if __name__ == "__main__":
     room = pra.ShoeBox(room_dim, max_order=max_order)
     room.add_source([2, 4])
     room.add_source([8, 1])
-    room.add_microphone_array(pra.MicrophoneArray([[6.316, 4.123],
-                                                   [3.754, 3.312]],
-                                                  fs=room.fs))
+    room.add_microphone_array(
+        pra.MicrophoneArray([[6.316, 4.123], [3.754, 3.312]], fs=room.fs)
+    )
     room.image_source_model()
     room.compute_rir()
 
@@ -171,5 +190,4 @@ if __name__ == "__main__":
 
     # Create animations
     create_animation(room, rir_1, filename="ism_anim_1")
-    create_animation(room, rir_2, (1, 1), init_rir=rir_1,
-                     filename="ism_anim_2")
+    create_animation(room, rir_2, (1, 1), init_rir=rir_1, filename="ism_anim_2")
